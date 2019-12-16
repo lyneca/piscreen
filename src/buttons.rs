@@ -4,6 +4,7 @@ use std::time::SystemTime;
 const HOLD_DURATION: u128 = 500;
 const TICK_DURATION: u128 = 300;
 
+/// Struct representing a single button
 pub struct Button {
     pin: Box<InputPin>,
     last_state: Level,
@@ -14,6 +15,7 @@ pub struct Button {
 }
 
 impl Button {
+    /// Create a new button off a given pin
     pub fn new(pin: InputPin) -> Button {
         Button {
             pin: Box::new(pin),
@@ -25,6 +27,8 @@ impl Button {
         }
     }
 
+    /// Check whether the internal value of a button should be updated
+    /// based on the pin values
     pub fn poll(&mut self) {
         if self.pin.is_low() {
             if self.last_state == Level::Low {
@@ -62,6 +66,8 @@ impl Button {
         }
     }
 
+    /// Return whether the button has been pressed.
+    /// This also returns true when a button is being held.
     pub fn was_pressed(&mut self) -> bool {
         if self.has_been_pressed {
             self.has_been_pressed = false;
@@ -70,6 +76,9 @@ impl Button {
             return false;
         }
     }
+
+    /// Whether the button is being held.
+    pub fn is_held(&self) -> bool { self.is_hold }
 }
 
 pub struct ButtonSet {

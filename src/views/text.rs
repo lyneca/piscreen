@@ -1,9 +1,6 @@
-use rppal::i2c::I2c;
-use ssd1306::{mode::GraphicsMode, interface::I2cInterface};
-
-use crate::interface::{
+use crate::{
     buttons::ButtonSet,
-    view::{View, ReturnState, ReturnStateEnum},
+    View, ReturnState, ReturnStateEnum::*, Display,
 };
 
 use embedded_graphics::{
@@ -18,6 +15,7 @@ use embedded_graphics::{
 const SCROLL_AMOUNT: u16 = 7;
 const SCROLL_AMOUNT_HOLD: u16 = 4;
 
+/// A view that renders wrapped, scrolling text.
 pub struct TextView { text: String, offset: u16 }
 
 impl TextView {
@@ -25,6 +23,7 @@ impl TextView {
         TextView { text: text.to_owned(), offset: 0 }
     }
 
+    /// Wrap the text in the view over several lines.
     pub fn get_lines(&self) -> Vec<String> {
         let mut lines: Vec<String> = Vec::new();
         let mut next: String = String::new();
@@ -42,13 +41,15 @@ impl TextView {
         lines
     }
 
-    pub fn get_max_offset(&self) -> u16 {
+    /// Get the maximum vertical offset of the contained text when rendered to
+    /// the screen.
+    fn get_max_offset(&self) -> u16 {
         return (self.get_lines().len()) as u16 * 9 + 1 - 60;
     }
 }
 
 impl View for TextView {
-    fn render(&mut self, disp: &mut GraphicsMode<I2cInterface<I2c>>) {
+    fn render(&mut self, disp: &mut Display) {
         for (i, line) in self.get_lines().iter().enumerate() {
             disp.draw(Font6x8::render_str(line).translate(Coord::new(3, 3 + 9 * i as i32 - self.offset as i32)).into_iter());
         }
@@ -71,7 +72,7 @@ impl View for TextView {
         }
         if buttons.left.was_pressed() { self.offset = 0; }
         if buttons.right.was_pressed() { self.offset = self.get_max_offset(); }
-        if buttons.b.was_pressed() { return Some(ReturnStateEnum::Pop) }
+        if buttons.b.was_pressed() { return Some(Pop) }
         None
     }
 }
