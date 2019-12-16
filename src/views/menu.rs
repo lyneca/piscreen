@@ -102,6 +102,18 @@ impl MenuView {
         }
     }
 
+    pub fn first_entry(&mut self) {
+        self.selected = 0;
+        self.first_visible_item = 0;
+    }
+
+    pub fn last_entry(&mut self) {
+        self.selected = self.entries.len() as u8 - 1;
+        if self.entries.len() > NUM_ENTRIES_SHOWN as usize {
+            self.first_visible_item = self.selected - (NUM_ENTRIES_SHOWN - 1);
+        }
+    }
+
     /// Create a new menu with the provided entries.
     pub fn with_entries(entries: Vec<MenuEntry>) -> MenuView {
         MenuView {
@@ -116,11 +128,11 @@ impl MenuView {
 
     /// Handle the buttons from the menu itself (i.e. don't pass down to any children).
     fn handle_buttons_self(&mut self, buttons: &mut ButtonSet) -> ReturnState {
-        if buttons.left.was_pressed() { }
-        if buttons.right.was_pressed() { }
-
         if buttons.up.was_pressed() { self.prev_entry() }
         if buttons.down.was_pressed() { self.next_entry() }
+
+        if buttons.left.was_pressed() { self.first_entry() }
+        if buttons.right.was_pressed() { self.last_entry() }
 
         if buttons.a.was_pressed() { self.active = true }
         if buttons.b.was_pressed() {
