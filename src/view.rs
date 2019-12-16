@@ -7,7 +7,10 @@ pub type Display = GraphicsMode<I2cInterface<I2c>>;
 
 /// Enum holding data returned from a child view to a parent view.
 #[derive(Debug)]
-pub enum ReturnStateEnum { Pop }
+pub enum ReturnStateEnum {
+    Pop,
+    Text(String)
+}
 
 /// Type for holding a return state in an option.
 pub type ReturnState = Option<ReturnStateEnum>;
@@ -20,4 +23,7 @@ pub trait View {
 
     /// Handle button inputs.
     fn handle_buttons(&mut self, buttons: &mut ButtonSet) -> ReturnState;
+
+    /// Activate the view before being rendered for the first time
+    fn activate(&mut self) {}
 }

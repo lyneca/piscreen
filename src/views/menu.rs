@@ -134,7 +134,10 @@ impl MenuView {
         if buttons.left.was_pressed() { self.first_entry() }
         if buttons.right.was_pressed() { self.last_entry() }
 
-        if buttons.a.was_pressed() { self.active = true }
+        if buttons.a.was_pressed() {
+            self.active = true;
+            self.entries[self.selected as usize].1.activate();
+        }
         if buttons.b.was_pressed() {
             return Some(Pop)
         }
@@ -187,7 +190,7 @@ impl View for MenuView {
                     self.active = false;
                     None
                 },
-                None => None
+                _ => None
             }
         } else {
             self.handle_buttons_self(buttons)
