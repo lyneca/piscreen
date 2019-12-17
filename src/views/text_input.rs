@@ -167,7 +167,7 @@ pub struct TextInputView {
 impl TextInputView {
     pub fn new() -> TextInputView {
         TextInputView {
-            text: String::from(""),
+            text: String::from(" "),
             input_tree: InputTree::new(),
             mode: Viewing,
             selected_char: 0
