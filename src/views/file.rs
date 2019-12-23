@@ -1,7 +1,7 @@
 extern crate embedded_graphics;
 
 use std::fs::DirEntry;
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf};
 
 use crate::{
     View, ReturnState, Display,
