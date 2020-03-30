@@ -1,23 +1,23 @@
 extern crate embedded_graphics;
 
-use std::cmp;
-
 use embedded_graphics::fonts::{Font,Font6x8};
 use embedded_graphics::coord::Coord;
 use embedded_graphics::prelude::*;
 use embedded_graphics::image::Image1BPP;
-use embedded_graphics::pixelcolor::PixelColorU8;
 use embedded_graphics::primitives::Rect;
 use embedded_graphics::primitives::Line;
 use embedded_graphics::Drawing;
 
 use crate::{
     buttons::ButtonSet,
+    views::{ON, OFF},
     View, ReturnState, ReturnStateEnum::*, Display
 };
 
+/// Number of entries shown on the screen.
 const NUM_ENTRIES_SHOWN: u8 = 4;
 
+/// Type representing a text entry and a Viewable object.
 pub type MenuEntry = (String, Box<dyn View>);
 
 /// A view that provies a scrolling list of selectable entries.
@@ -29,13 +29,6 @@ pub struct MenuView {
     first_visible_item: u8,
     text_scroll_offset: u8
 }
-
-const ARROW: &[u8] = &[
-    0b01000000,
-    0b11111100,
-    0b11111100,
-    0b01000000,
-];
 
 const ARROW_DOWN: &[u8] = &[
     0b00000000,
@@ -73,6 +66,7 @@ impl MenuView {
         self.entries = entries;
     }
 
+    /// Select the name of the menu
     pub fn set_name(&mut self, name: &str) {
         self.name = Some(name.to_owned());
     }
@@ -102,11 +96,13 @@ impl MenuView {
         }
     }
 
+    /// Select the first entry
     pub fn first_entry(&mut self) {
         self.selected = 0;
         self.first_visible_item = 0;
     }
 
+    /// Select the last entry
     pub fn last_entry(&mut self) {
         self.selected = self.entries.len() as u8 - 1;
         if self.entries.len() > NUM_ENTRIES_SHOWN as usize {
@@ -147,24 +143,59 @@ impl MenuView {
 
     /// Handle rendering from the menu itself (i.e. don't pass down to any children).
     fn render_self(&mut self, disp: &mut Display) {
+        // let has_scroll = self.entries.len() > 4;
+        let has_scroll = false;
+        let width = match has_scroll {
+            true => 123,
+            false => 127,
+        };
         for (i, entry) in self.entries.iter().skip(self.first_visible_item as usize).take(NUM_ENTRIES_SHOWN as usize).enumerate() {
             let is_selected = std::ptr::eq(&self.entries[self.selected as usize], entry);
             disp.draw(Rect::new(
                     Coord::new(0, i as i32 * 13),
-                    Coord::new(127, (i + 1) as i32 * 13))
-                .with_stroke(Some(PixelColorU8(1)))
-                .with_fill(Some(PixelColorU8(is_selected as u8)))
+                    Coord::new(width, (i + 1) as i32 * 13))
+                .with_stroke(ON)
+                .with_fill(match is_selected { true => ON, false => OFF })
                 .into_iter());
-            disp.draw(Font6x8::render_str(entry.0.as_ref())
-                .with_stroke(Some(PixelColorU8(!is_selected as u8)))
-                .with_fill(Some(PixelColorU8(is_selected as u8)))
+            disp.draw(Font6x8::render_str(match entry.0.get(..20) {
+                Some(s) => s,
+                None => entry.0.as_str()
+            })
+                .with_stroke(match !is_selected { true => ON, false => OFF })
+                .with_fill(match is_selected { true => ON, false => OFF })
                 .translate(Coord::new(3, i as i32 * 13 + 3))
                 .into_iter());
             disp.draw(Rect::new(
                     Coord::new(0, i as i32 * 13),
-                    Coord::new(127, (i + 1) as i32 * 13))
-                .with_stroke(Some(PixelColorU8(1)))
+                    Coord::new(width, (i + 1) as i32 * 13))
+                .with_stroke(ON)
                 .into_iter());
+        }
+        if has_scroll {
+            disp.draw(Line::new(
+                    Coord::new(127 - 2, 0),
+                    Coord::new(127, 0))
+                .with_stroke(ON)
+                .into_iter());
+            disp.draw(Line::new(
+                    Coord::new(127 - 2, 63),
+                    Coord::new(127, 63))
+                .with_stroke(ON)
+                .into_iter());
+            disp.draw(Line::new(
+                    Coord::new(127 - 1, 0),
+                    Coord::new(127 - 1, 63))
+                .with_stroke(ON)
+                .into_iter());
+            let height = 60f32 / self.entries.len() as f32;
+            let offset = (2f32 + self.selected as f32 * height as f32) as u8;
+            disp.draw(Rect::new(
+                    Coord::new(127 - 2, offset as i32),
+                    Coord::new(127, (offset + height as u8) as i32))
+                .with_fill(ON)
+                .into_iter());
+        } else {
+
         }
         match &self.name {
             Some(name) => disp.draw(Font6x8::render_str(name.as_ref())
@@ -175,7 +206,7 @@ impl MenuView {
         if self.first_visible_item < self.entries.len() as u8 - NUM_ENTRIES_SHOWN
             && NUM_ENTRIES_SHOWN <= self.entries.len() as u8 {
             disp.draw(Image1BPP::new(ARROW_DOWN, 5, 8)
-                .translate(Coord::new(127 - 7, 4 * 13 + 3))
+                .translate(Coord::new(width - 7, 4 * 13 + 3))
                 .into_iter());
         }
         self.text_scroll_offset = 0;

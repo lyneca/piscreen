@@ -67,7 +67,7 @@ impl View for TextView {
         }
         if buttons.down.was_pressed() {
             self.offset = std::cmp::min(self.offset.saturating_add(
-                    if buttons.up.is_hold { SCROLL_AMOUNT_HOLD } else { SCROLL_AMOUNT }
+                    if buttons.down.is_hold { SCROLL_AMOUNT_HOLD } else { SCROLL_AMOUNT }
             ), self.get_max_offset());
         }
         if buttons.left.was_pressed() { self.offset = 0; }

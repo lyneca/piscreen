@@ -5,6 +5,9 @@ pub mod views;
 pub use buttons::*;
 pub use view::*;
 
+pub use views::ON;
+pub use views::OFF;
+
 /// Create a new menu.
 /// ```
 /// menu_view![
